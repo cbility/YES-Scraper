@@ -1,5 +1,15 @@
 {
+  "type": "commonjs",
+  "name": "your-package-name",
+  "version": "1.0.0",
+  "main": "out\\RHI-local.js",
+  "scripts": {
+    "start": "node out\\RHI-local.js 65e37da7f8428f036fd9978e"
+  },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
+    "postcodesio-client": "^0.3.4",
     "puppeteer": "^22.4.1"
   }
 }
