@@ -11,7 +11,6 @@
     "chrome-aws-lambda": "^9.1.0",
     "dotenv": "^16.4.5",
     "postcodesio-client": "^0.3.4",
-    "puppeteer": "^22.4.1",
     "puppeteer-core": "^9.1.0"
   }
 }
