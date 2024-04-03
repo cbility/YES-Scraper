@@ -26,6 +26,10 @@ jobs:
           zip -qq -r bundle.zip dist_bundle node_modules
         env:
           CI: true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: lambda_bundle
       - name: Default deploy
         uses: appleboy/lambda-action@master
         with:
