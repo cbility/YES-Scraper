@@ -27,7 +27,7 @@ jobs:
         env:
           CI: true
       - name: Upload to S3
-        uses: actions/aws/cli@v2
+        uses: actions/aws/cli@v1
         with:
           args: s3 cp bundle.zip s3://your-bucket-name/
         env:
@@ -36,7 +36,7 @@ jobs:
           AWS_REGION: eu-west-2
       - name: Deploy Lambda function
         run: |
-          aws lambda update-function-code --function-name YES_Scraper --s3-bucket RHI-scraper-repo --s3-key bundle.zip
+          aws lambda update-function-code --function-name YES_Scraper --s3-bucket your-bucket-name --s3-key bundle.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
