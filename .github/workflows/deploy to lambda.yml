@@ -30,6 +30,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: lambda_bundle
+          path: bundle.zip
       - name: Default deploy
         uses: appleboy/lambda-action@master
         with:
