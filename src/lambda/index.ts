@@ -12,6 +12,22 @@ exports.handler = async (event, context) => {
   const inputs = event.body
 
   try {
+
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+
+    const page = await browser.newPage();
+    await page.goto("https://google.com");
+    const pageTitle = await page.title();
+    await browser.close();
+
+    console.log(pageTitle);
+    return pageTitle;
+
     await main(inputs, puppeteer, 1, {
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,

@@ -18,6 +18,18 @@ exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
     const inputs = event.body;
     try {
+        const browser = yield puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: yield chromium.executablePath(),
+            headless: chromium.headless,
+        });
+        const page = yield browser.newPage();
+        yield page.goto("https://google.com");
+        const pageTitle = yield page.title();
+        yield browser.close();
+        console.log(pageTitle);
+        return pageTitle;
         yield (0, main_1.default)(inputs, puppeteer, 1, {
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
