@@ -21,11 +21,11 @@ jobs:
           CI: true
       - name: Zip
         run: |
-                mkdir -p zip
-                cd dist/lambda
-                zip -qq -r ../../zip/bundle.zip *
-                cd ../..
-                zip -qq -r zip/bundle.zip node_modules
+          mkdir -p zip
+          cd dist/lambda
+          zip -qq -r ../../zip/bundle.zip *
+          cd ../..
+          zip -qq -r zip/bundle.zip node_modules
         env:
           CI: true
       - name: Upload to S3
@@ -38,3 +38,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: 'eu-west-2'
           SOURCE_DIR: './zip'
+      - name: Deploy lambda from S3
+        uses: rotarydialer/update-lambda-s3@main
+        env:
+          LAMBDA_NAME: YES_Scraper
+          AWS_S3_BUCKET: yes-scraper
+          AWS_S3_KEY: s3://yes-scraper/bundle.zip
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
