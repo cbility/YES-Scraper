@@ -1,6 +1,9 @@
 import main from './RHI/main';
-const chromium = require('chrome-aws-lambda');
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
+chromium.setHeadlessMode = true;
+chromium.setGraphicsMode = false;
 
 exports.handler = async (event, context) => {
 
@@ -9,12 +12,11 @@ exports.handler = async (event, context) => {
   const inputs = event.body
 
   try {
-    await main(inputs, chromium.puppeteer, 1, {
+    await main(inputs, puppeteer, 1, {
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
-      ignoreHTTPSErrors: true,
     })
   }
   catch (err) {

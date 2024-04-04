@@ -7,13 +7,13 @@
     "start": "node out\\RHI-local.js"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^112.0.2",
     "cheerio": "^1.0.0-rc.12",
-    "chrome-aws-lambda": "^9.1.0",
     "postcodesio-client": "^0.3.4",
-    "puppeteer-core": "^9.1.0"
+    "puppeteer-core": "^19.8.0"
   },
   "devDependencies": {
-    "puppeteer": "^22.6.2",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "puppeteer": "^22.6.2"
   }
 }

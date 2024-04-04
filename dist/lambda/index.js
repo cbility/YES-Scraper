@@ -10,17 +10,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const main_1 = require("./RHI/main");
-const chromium = require('chrome-aws-lambda');
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
+chromium.setHeadlessMode = true;
+chromium.setGraphicsMode = false;
 exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
     const inputs = event.body;
     try {
-        yield (0, main_1.default)(inputs, chromium.puppeteer, 1, {
+        yield (0, main_1.default)(inputs, puppeteer, 1, {
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
-            executablePath: yield chromium.executablePath,
+            executablePath: yield chromium.executablePath(),
             headless: chromium.headless,
-            ignoreHTTPSErrors: true,
         });
     }
     catch (err) {
