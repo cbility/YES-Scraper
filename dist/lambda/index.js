@@ -11,8 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const main_1 = require("./RHI/main");
 const chromium = require('chrome-aws-lambda');
-exports.handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    const inputs = JSON.parse(event.body);
+exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("EVENT: \n" + JSON.stringify(event, null, 2));
+    const inputs = event.body;
     try {
         yield (0, main_1.default)(inputs, chromium.puppeteer, 1, true);
     }
