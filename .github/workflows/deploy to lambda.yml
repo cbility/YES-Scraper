@@ -23,7 +23,8 @@ jobs:
         run: |
           mkdir -p dist_bundle
           cp -r dist/lambda dist_bundle
-          zip -qq -r bundle.zip dist_bundle node_modules
+          mkdir -p zip
+          zip -qq -r zip/bundle.zip dist_bundle node_modules
         env:
           CI: true
       - name: Upload to S3
@@ -33,4 +34,4 @@ jobs:
            aws_key_id: ${{secrets.AWS_ACCESS_KEY_ID }}
            aws_secret_access_key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
            aws_bucket: yes-scraper
-           source_dir: bundle.zip
+           source_dir: zip
