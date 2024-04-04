@@ -22,15 +22,18 @@ jobs:
       - name: Zip
         run: |
           mkdir -p dist_bundle
+          mkdir -p zip
           cp -r dist/lambda dist_bundle
-          zip -qq -r bundle.zip dist_bundle node_modules
+          zip -qq -r zip/bundle.zip dist_bundle node_modules
         env:
           CI: true
       - name: Upload to S3
-        uses: hkusu/s3-upload-action@v2.1.0
+        uses: jakejarvis/s3-sync-action@master
         with:
-           aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID }}
-           aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY }}
-           aws-region: 'eu-west-2'
-           aws-bucket: yes-scraper
-           file-path: './bundle.zip'
+          args: --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: yes-scraper
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-west-2'
+          SOURCE_DIR: './zip'
