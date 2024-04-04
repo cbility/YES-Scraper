@@ -1,7 +1,9 @@
 import main from './RHI/main';
 const chromium = require('chrome-aws-lambda');
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
+
+  console.log("here");
 
   const inputs = JSON.parse(event.body);
 
