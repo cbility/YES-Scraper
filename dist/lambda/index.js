@@ -24,6 +24,7 @@ exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function
             executablePath: yield chromium.executablePath('https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar'),
             headless: chromium.headless,
         });
+        return "Update Complete";
     }
     catch (err) {
         console.log(err);

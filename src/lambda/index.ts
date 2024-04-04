@@ -21,6 +21,9 @@ exports.handler = async (event, context) => {
       ),
       headless: chromium.headless,
     })
+
+    return "Update Complete";
+
   }
   catch (err) {
     console.log(err);
