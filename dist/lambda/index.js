@@ -16,7 +16,7 @@ chromium.setHeadlessMode = true;
 chromium.setGraphicsMode = false;
 exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
-    const inputs = event.body;
+    const inputs = JSON.parse(event.body);
     try {
         yield (0, main_1.default)(inputs, puppeteer_core_1.default, 1, {
             args: chromium.args,
