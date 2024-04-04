@@ -21,8 +21,11 @@ jobs:
           CI: true
       - name: Zip
         run: |
-            mkdir -p zip
-            zip -r zip/bundle.zip dist/lambda/* node_modules
+                mkdir -p zip
+                cd dist/lambda
+                zip -qq -r ../../zip/bundle.zip *
+                cd ../..
+                zip -qq -r zip/bundle.zip node_modules
         env:
           CI: true
       - name: Upload to S3
