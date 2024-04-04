@@ -9,10 +9,10 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "postcodesio-client": "^0.3.4",
-    "puppeteer-core": "^21.5.50"
+    "puppeteer-core": "^21.5.50",
+    "@sparticuz/chromium-min": "^119.0.2"
   },
   "devDependencies": {
-    "@sparticuz/chromium-min": "^119.0.2",
     "dotenv": "^16.4.5",
     "puppeteer": "^21.5.0",
     "typescript": "^5.2.2"
