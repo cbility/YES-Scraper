@@ -4,13 +4,16 @@
   "version": "1.0.0",
   "main": "out\\RHI-local.js",
   "scripts": {
-    "start": "node out\\RHI-local.js 65e37da7f8428f036fd9978e"
+    "start": "node out\\RHI-local.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "chrome-aws-lambda": "^9.1.0",
-    "dotenv": "^16.4.5",
     "postcodesio-client": "^0.3.4",
     "puppeteer-core": "^9.1.0"
+  },
+  "devDependencies": {
+    "puppeteer": "^22.6.2",
+    "dotenv": "^16.4.5"
   }
 }
