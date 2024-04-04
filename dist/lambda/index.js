@@ -15,7 +15,13 @@ exports.handler = (event, context) => __awaiter(void 0, void 0, void 0, function
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
     const inputs = event.body;
     try {
-        yield (0, main_1.default)(inputs, chromium.puppeteer, 1, true);
+        yield (0, main_1.default)(inputs, chromium.puppeteer, 1, {
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: yield chromium.executablePath,
+            headless: chromium.headless,
+            ignoreHTTPSErrors: true,
+        });
     }
     catch (err) {
         console.log(err);

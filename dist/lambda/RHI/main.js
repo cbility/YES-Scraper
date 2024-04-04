@@ -32,7 +32,7 @@ const validateLogin_1 = require("./validateLogin");
 const getRHIDetails_1 = require("./getRHIDetails");
 const MIN_LOGINS_PER_BROWSER = 3;
 function main(inputs_1, puppeteer_1) {
-    return __awaiter(this, arguments, void 0, function* (inputs, puppeteer, multiplicity = 1, headless = true) {
+    return __awaiter(this, arguments, void 0, function* (inputs, puppeteer, multiplicity = 1, browserArgs) {
         if (inputs.length === 0)
             throw new Error("Empty input array");
         if ('loginID' in inputs[0]) { //if triggered with login IDs to update
@@ -51,20 +51,7 @@ function main(inputs_1, puppeteer_1) {
             const numBrowsers = (loginRecordsList.length > multiplicity * MIN_LOGINS_PER_BROWSER) ?
                 multiplicity :
                 Math.floor(loginRecordsList.length / MIN_LOGINS_PER_BROWSER) || 1;
-            const browsers = new Array(numBrowsers).fill(yield puppeteer.launch({
-                headless: headless,
-                defaultViewport: null,
-                args: ['--autoplay-policy=user-gesture-required', '--disable-backgrounding-occluded-windows',
-                    '--disable-breakpad', '--disable-client-side-phishing-detection', '--disable-component-update',
-                    '--disable-default-apps', '--disable-dev-shm-usage', '--disable-domain-reliability',
-                    '--disable-extensions', '--disable-features=AudioServiceOutOfProcess', '--disable-hang-monitor',
-                    '--disable-notifications', '--disable-offer-store-unmasked-wallet-cards', '--disable-popup-blocking',
-                    '--disable-print-preview', '--disable-prompt-on-repost', '--disable-renderer-backgrounding',
-                    '--disable-setuid-sandbox', '--disable-speech-api', '--disable-sync', '--hide-scrollbars',
-                    '--ignore-gpu-blacklist', '--metrics-recording-only', '--mute-audio', '--no-default-browser-check',
-                    '--no-first-run', '--no-pings', '--no-sandbox', '--no-zygote', '--password-store=basic',
-                    '--use-gl=swiftshader', '--use-mock-keychain',]
-            }));
+            const browsers = new Array(numBrowsers).fill(yield puppeteer.launch(browserArgs));
             const loginsIDsForBrowsers = splitArrayIntoSubArrays(inputs, numBrowsers);
             const [{ logins: loginDetails, accounts: accountDetails, newRHIs: newRHIDetails, updatedRHIs: updatedRHIDetails }] = (yield Promise.all(browsers.map(function (browser, index) {
                 return __awaiter(this, void 0, void 0, function* () {

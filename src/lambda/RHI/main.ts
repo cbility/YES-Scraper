@@ -17,7 +17,7 @@ type Inputs = LoginInput[] | AccountInput[] | RHIInput[];
 
 const MIN_LOGINS_PER_BROWSER = 3;
 
-export default async function main(inputs: Inputs, puppeteer, multiplicity: number = 1, headless: boolean = true) {
+export default async function main(inputs: Inputs, puppeteer, multiplicity: number = 1, browserArgs) { //headless: boolean = true) {
 
     if (inputs.length === 0) throw new Error("Empty input array");
 
@@ -47,20 +47,7 @@ export default async function main(inputs: Inputs, puppeteer, multiplicity: numb
             multiplicity :
             Math.floor(loginRecordsList.length / MIN_LOGINS_PER_BROWSER) || 1;
 
-        const browsers = new Array(numBrowsers).fill(await puppeteer.launch({
-            headless: headless,
-            defaultViewport: null,
-            args: ['--autoplay-policy=user-gesture-required', '--disable-backgrounding-occluded-windows'
-                , '--disable-breakpad', '--disable-client-side-phishing-detection', '--disable-component-update'
-                , '--disable-default-apps', '--disable-dev-shm-usage', '--disable-domain-reliability'
-                , '--disable-extensions', '--disable-features=AudioServiceOutOfProcess', '--disable-hang-monitor'
-                , '--disable-notifications', '--disable-offer-store-unmasked-wallet-cards', '--disable-popup-blocking'
-                , '--disable-print-preview', '--disable-prompt-on-repost', '--disable-renderer-backgrounding'
-                , '--disable-setuid-sandbox', '--disable-speech-api', '--disable-sync', '--hide-scrollbars'
-                , '--ignore-gpu-blacklist', '--metrics-recording-only', '--mute-audio', '--no-default-browser-check'
-                , '--no-first-run', '--no-pings', '--no-sandbox', '--no-zygote', '--password-store=basic'
-                , '--use-gl=swiftshader', '--use-mock-keychain',]
-        }));
+        const browsers = new Array(numBrowsers).fill(await puppeteer.launch(browserArgs));
         const loginsIDsForBrowsers = splitArrayIntoSubArrays(inputs, numBrowsers);
 
         const [{ logins: loginDetails, accounts: accountDetails,
