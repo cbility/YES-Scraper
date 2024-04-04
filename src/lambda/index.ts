@@ -1,6 +1,6 @@
 import main from './RHI/main';
-const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
+import puppeteer from 'puppeteer-core';
+const chromium = require('@sparticuz/chromium-min');
 
 chromium.setHeadlessMode = true;
 chromium.setGraphicsMode = false;
@@ -16,7 +16,9 @@ exports.handler = async (event, context) => {
     const browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(
+        'https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar',
+      ),
       headless: chromium.headless,
     });
 
