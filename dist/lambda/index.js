@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const main_1 = require("./RHI/main");
-const chromium = require("chrome-aws-lambda");
+const chromium = require('chrome-aws-lambda');
 exports.handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const inputs = JSON.parse(event.body);
     try {
