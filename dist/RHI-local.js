@@ -9,27 +9,54 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require('dotenv').config();
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require("dotenv").config();
 const puppeteer_1 = require("puppeteer");
 const main_1 = require("./lambda/RHI/main");
 const globals_1 = require("./lambda/globals");
 const browserArgs = {
     headless: true, //set to false to disable headless
     defaultViewport: null,
-    args: ['--autoplay-policy=user-gesture-required', '--disable-backgrounding-occluded-windows',
-        '--disable-breakpad', '--disable-client-side-phishing-detection', '--disable-component-update',
-        '--disable-default-apps', '--disable-dev-shm-usage', '--disable-domain-reliability',
-        '--disable-extensions', '--disable-features=AudioServiceOutOfProcess', '--disable-hang-monitor',
-        '--disable-notifications', '--disable-offer-store-unmasked-wallet-cards', '--disable-popup-blocking',
-        '--disable-print-preview', '--disable-prompt-on-repost', '--disable-renderer-backgrounding',
-        '--disable-setuid-sandbox', '--disable-speech-api', '--disable-sync', '--hide-scrollbars',
-        '--ignore-gpu-blacklist', '--metrics-recording-only', '--mute-audio', '--no-default-browser-check',
-        '--no-first-run', '--no-pings', '--no-sandbox', '--no-zygote', '--password-store=basic',
-        '--use-gl=swiftshader', '--use-mock-keychain',]
+    args: [
+        "--autoplay-policy=user-gesture-required",
+        "--disable-backgrounding-occluded-windows",
+        "--disable-breakpad",
+        "--disable-client-side-phishing-detection",
+        "--disable-component-update",
+        "--disable-default-apps",
+        "--disable-dev-shm-usage",
+        "--disable-domain-reliability",
+        "--disable-extensions",
+        "--disable-features=AudioServiceOutOfProcess",
+        "--disable-hang-monitor",
+        "--disable-notifications",
+        "--disable-offer-store-unmasked-wallet-cards",
+        "--disable-popup-blocking",
+        "--disable-print-preview",
+        "--disable-prompt-on-repost",
+        "--disable-renderer-backgrounding",
+        "--disable-setuid-sandbox",
+        "--disable-speech-api",
+        "--disable-sync",
+        "--hide-scrollbars",
+        "--ignore-gpu-blacklist",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-default-browser-check",
+        "--no-first-run",
+        "--no-pings",
+        "--no-sandbox",
+        "--no-zygote",
+        "--password-store=basic",
+        "--use-gl=swiftshader",
+        "--use-mock-keychain",
+    ],
 };
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const allLoginRecords = yield (0, globals_1.getAllRecords)(globals_1.loginsTable.id);
-    const inputs = allLoginRecords.map(record => ({ loginID: record.id }));
+    const inputs = allLoginRecords.map((record) => ({
+        loginID: record.id,
+    }));
     //await main([{ loginID: "65e37da7f8428f036fd997d7" }], puppeteer, 1, true);
     //const testID: string = process.argv[2];
     function updateLogins(step_1) {
@@ -44,6 +71,6 @@ const browserArgs = {
             }
         });
     }
-    updateLogins(50, 650);
+    updateLogins(50, 0);
 }))();
 //# sourceMappingURL=RHI-local.js.map

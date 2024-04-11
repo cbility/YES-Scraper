@@ -1,20 +1,23 @@
 {
-  "type": "commonjs",
-  "name": "your-package-name",
-  "version": "1.0.0",
-  "main": "out\\RHI-local.js",
-  "scripts": {
-    "start": "node out\\RHI-local.js"
-  },
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
-    "postcodesio-client": "^0.3.4",
-    "puppeteer-core": "^21.5.50",
-    "@sparticuz/chromium-min": "^119.0.2"
-  },
-  "devDependencies": {
-    "dotenv": "^16.4.5",
-    "puppeteer": "^21.5.0",
-    "typescript": "^5.2.2"
-  }
+    "type": "commonjs",
+    "name": "your-package-name",
+    "version": "1.0.0",
+    "main": "dist\\RHI-local.js",
+    "scripts": {
+        "start": "node dist\\RHI-local.js"
+    },
+    "dependencies": {
+        "@sparticuz/chromium-min": "^119.0.2",
+        "cheerio": "^1.0.0-rc.12",
+        "postcodesio-client": "^0.3.4",
+        "puppeteer-core": "^21.5.50"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^7.5.0",
+        "@typescript-eslint/parser": "^7.5.0",
+        "dotenv": "^16.4.5",
+        "eslint": "^8.57.0",
+        "puppeteer": "^21.5.0",
+        "typescript": "^5.2.2"
+    }
 }
