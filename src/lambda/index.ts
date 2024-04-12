@@ -7,6 +7,8 @@ chromium.setGraphicsMode = false;
 
 exports.handler = async (event) => {
 
+    const shallow: boolean = Boolean(event.queryStringParameters?.shallow);
+
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
 
     const inputs = JSON.parse(event.body);
@@ -29,7 +31,7 @@ exports.handler = async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ message: "Update Complete" })
+            body: JSON.stringify({ message: "Update Complete", shallow  })
         };
         return response;
 
