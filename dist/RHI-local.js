@@ -63,14 +63,14 @@ const browserArgs = {
         return __awaiter(this, arguments, void 0, function* (step, index = 0) {
             if (inputs.length - step > index) {
                 console.log(`index ${index}`);
-                yield (0, main_1.default)(inputs.slice(index, index + step), puppeteer_1.default, browserArgs, 1, false);
+                yield (0, main_1.default)(inputs.slice(index, index + step), puppeteer_1.default, browserArgs, 1, true);
                 updateLogins(step, index + step);
             }
             else {
-                yield (0, main_1.default)(inputs.slice(index), puppeteer_1.default, browserArgs, 1, false);
+                yield (0, main_1.default)(inputs.slice(index), puppeteer_1.default, browserArgs, 1, true);
             }
         });
     }
-    updateLogins(50, 0);
+    updateLogins(3, 0);
 }))();
 //# sourceMappingURL=RHI-local.js.map

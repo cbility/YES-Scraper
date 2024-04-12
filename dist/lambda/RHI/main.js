@@ -120,7 +120,7 @@ function main(inputs_1, puppeteer_1, browserArgs_1) {
                         const updatedAccountRecord = yield (0, getAccountDetails_1.default)(accountRecordToUpdate, page);
                         if (accountID) {
                             //only get RHIs for accounts on record
-                            const RHIDetails = yield (0, getRHIDetails_1.default)(accountID, page);
+                            const RHIDetails = yield (0, getRHIDetails_1.default)(accountID, page, shallow);
                             RHIDetails.forEach((RHI) => {
                                 if (!(RHI.title in ExistingRHIRecords)) {
                                     _newRHIDetails.push(RHI);

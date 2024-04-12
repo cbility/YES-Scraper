@@ -59,7 +59,11 @@ export default async function getRHIDetails(
 }
 
 async function getRHIAccreditationDetails(
-    tableRow: number, accountID: string, page: Page, summary$: cheerio.CheerioAPI, shallow: boolean = false) {
+    tableRow: number,
+    accountID: string,
+    page: Page,
+    summary$: cheerio.CheerioAPI,
+    shallow: boolean = false) {
 
     const RHI: RHIRecord = {
         id: undefined,

@@ -175,7 +175,7 @@ export default async function main(
 
                         if (accountID) {
                             //only get RHIs for accounts on record
-                            const RHIDetails = await getRHIDetails(accountID, page);
+                            const RHIDetails = await getRHIDetails(accountID, page, shallow);
                             RHIDetails.forEach((RHI) => {
                                 if (!(RHI.title in ExistingRHIRecords)) {
                                     _newRHIDetails.push(RHI);
