@@ -23,7 +23,7 @@ exports.handler = async (event) => {
             ),
             headless: chromium.headless,
         }, 1,
-        false
+        shallow
         );
 
         const response = {

@@ -25,7 +25,7 @@ exports.handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
             defaultViewport: chromium.defaultViewport,
             executablePath: yield chromium.executablePath("https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar"),
             headless: chromium.headless,
-        }, 1, false);
+        }, 1, shallow);
         const response = {
             statusCode: 200,
             headers: {
