@@ -17,6 +17,8 @@ import getAccountDetails from "./getAccountDetails";
 import logInUser from "./logInUser";
 import validateLogin from "./validateLogin";
 import getRHIDetails from "./getRHIDetails";
+import { PuppeteerNode as PuppeteerCoreNode} from "puppeteer-core" ;
+import { PuppeteerNode} from "puppeteer" ;
 
 type Inputs = LoginInput[] | AccountInput[] | RHIInput[];
 
@@ -24,9 +26,10 @@ const MIN_LOGINS_PER_BROWSER = 3;
 
 export default async function main(
     inputs: Inputs,
-    puppeteer,
+    puppeteer: PuppeteerCoreNode | PuppeteerNode,
+    browserArgs: object,
     multiplicity: number = 1,
-    browserArgs
+    shallow: boolean = false
 ) {
     if (inputs.length === 0) throw new Error("Empty input array");
 
@@ -123,7 +126,7 @@ export default async function main(
                             updatedLoginRecord[loginsTable.fields["Login Type"]] ===
                             "Additional User"
                         ) {
-                            const RHIDetails = await getRHIDetails(accountID, page);
+                            const RHIDetails = await getRHIDetails(accountID, page, shallow);
                             if (!RHIDetails[0]) continue;
 
                             updatedLoginRecord[loginsTable.fields["Account"]] =

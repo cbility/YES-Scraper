@@ -13,16 +13,25 @@ exports.handler = async (event) => {
 
     try {
 
-        await main(inputs, puppeteer, 1, {
+        await main(inputs, puppeteer, {
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
             executablePath: await chromium.executablePath(
                 "https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar",
             ),
             headless: chromium.headless,
-        });
+        }, 1,
+        false
+        );
 
-        return "Update Complete";
+        const response = {
+            statusCode: 200,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: "Update Complete" })
+        };
+        return response;
 
     }
     catch (err) {

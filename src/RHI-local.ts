@@ -62,10 +62,10 @@ const browserArgs = {
     async function updateLogins(step: number, index: number = 0) {
         if (inputs.length - step > index) {
             console.log(`index ${index}`);
-            await main(inputs.slice(index, index + step), puppeteer, 1, browserArgs);
+            await main(inputs.slice(index, index + step), puppeteer, browserArgs, 1, false);
             updateLogins(step, index + step);
         } else {
-            await main(inputs.slice(index), puppeteer, 1, true);
+            await main(inputs.slice(index), puppeteer, browserArgs, 1, false);
         }
     }
 

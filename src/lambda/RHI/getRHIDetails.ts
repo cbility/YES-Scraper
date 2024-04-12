@@ -7,7 +7,8 @@ const postcodes = new PostcodesIO("https://api.postcodes.io");
 
 export default async function getRHIDetails(
     accountID: string,
-    page: Page
+    page: Page,
+    shallow: boolean = false
 ): Promise<RHIRecord[]> {
     
     //go to accreditation
@@ -22,7 +23,7 @@ export default async function getRHIDetails(
         "#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList > tbody > tr").length - 1;
 
     for (let tableRow = 2; tableRow <= numRows + 1; tableRow++) {
-        const RHI: RHIRecord = await getRHIAccreditationDetails(tableRow, accountID, page, summary$);
+        const RHI: RHIRecord = await getRHIAccreditationDetails(tableRow, accountID, page, summary$, shallow);
         RHIRecords.push(RHI);
         await page.goto("https://rhi.ofgem.gov.uk/Accreditation/ApplyAccreditation.aspx?mode=13");
     }
@@ -58,7 +59,7 @@ export default async function getRHIDetails(
 }
 
 async function getRHIAccreditationDetails(
-    tableRow: number, accountID: string, page: Page, summary$: cheerio.CheerioAPI) {
+    tableRow: number, accountID: string, page: Page, summary$: cheerio.CheerioAPI, shallow: boolean = false) {
 
     const RHI: RHIRecord = {
         id: undefined,
@@ -68,19 +69,17 @@ async function getRHIAccreditationDetails(
 
     getBasicAccreditationDetail(RHI, tableRow, summary$);
 
-    const viewDetailsButton = await page.$(
-        `#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList_btnViewAccredApp_${tableRow - 2}`);
-
-    await Promise.all([
-        page.waitForNavigation(),
-        viewDetailsButton.click()
-    ]);
-
-    const accreditationDetailsHTML = await page.content();
-
-    getExpandedAccreditationDetail(accreditationDetailsHTML, RHI);
-
-    await getPostcodeLocation(RHI);
+    if (!shallow) {
+        const viewDetailsButton = await page.$(
+            `#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList_btnViewAccredApp_${tableRow - 2}`);
+        await Promise.all([
+            page.waitForNavigation(),
+            viewDetailsButton.click()
+        ]);
+        const accreditationDetailsHTML = await page.content();
+        getExpandedAccreditationDetail(accreditationDetailsHTML, RHI);
+        await getPostcodeLocation(RHI);
+    }
     return RHI;
 }
 
