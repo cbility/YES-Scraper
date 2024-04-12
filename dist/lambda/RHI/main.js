@@ -31,8 +31,8 @@ const logInUser_1 = require("./logInUser");
 const validateLogin_1 = require("./validateLogin");
 const getRHIDetails_1 = require("./getRHIDetails");
 const MIN_LOGINS_PER_BROWSER = 3;
-function main(inputs_1, puppeteer_1) {
-    return __awaiter(this, arguments, void 0, function* (inputs, puppeteer, multiplicity = 1, browserArgs) {
+function main(inputs_1, puppeteer_1, browserArgs_1) {
+    return __awaiter(this, arguments, void 0, function* (inputs, puppeteer, browserArgs, multiplicity = 1, shallow = false) {
         if (inputs.length === 0)
             throw new Error("Empty input array");
         if ("loginID" in inputs[0]) {
@@ -82,7 +82,7 @@ function main(inputs_1, puppeteer_1) {
                         // Account information not available on AU logins
                         if (updatedLoginRecord[globals_1.loginsTable.fields["Login Type"]] ===
                             "Additional User") {
-                            const RHIDetails = yield (0, getRHIDetails_1.default)(accountID, page);
+                            const RHIDetails = yield (0, getRHIDetails_1.default)(accountID, page, shallow);
                             if (!RHIDetails[0])
                                 continue;
                             updatedLoginRecord[globals_1.loginsTable.fields["Account"]] =

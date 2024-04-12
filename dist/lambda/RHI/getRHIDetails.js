@@ -13,8 +13,8 @@ const globals_1 = require("../globals");
 const cheerio = require("cheerio");
 const PostcodesIO = require("postcodesio-client");
 const postcodes = new PostcodesIO("https://api.postcodes.io");
-function getRHIDetails(accountID, page) {
-    return __awaiter(this, void 0, void 0, function* () {
+function getRHIDetails(accountID_1, page_1) {
+    return __awaiter(this, arguments, void 0, function* (accountID, page, shallow = false) {
         //go to accreditation
         yield page.goto("https://rhi.ofgem.gov.uk/Accreditation/ApplyAccreditation.aspx?mode=13");
         const RHIRecords = [];
@@ -23,7 +23,7 @@ function getRHIDetails(accountID, page) {
         const summary$ = cheerio.load(accreditationSummaryHTML);
         const numRows = summary$("#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList > tbody > tr").length - 1;
         for (let tableRow = 2; tableRow <= numRows + 1; tableRow++) {
-            const RHI = yield getRHIAccreditationDetails(tableRow, accountID, page, summary$);
+            const RHI = yield getRHIAccreditationDetails(tableRow, accountID, page, summary$, shallow);
             RHIRecords.push(RHI);
             yield page.goto("https://rhi.ofgem.gov.uk/Accreditation/ApplyAccreditation.aspx?mode=13");
         }
@@ -53,22 +53,24 @@ function getRHIDetails(accountID, page) {
     });
 }
 exports.default = getRHIDetails;
-function getRHIAccreditationDetails(tableRow, accountID, page, summary$) {
-    return __awaiter(this, void 0, void 0, function* () {
+function getRHIAccreditationDetails(tableRow_1, accountID_1, page_1, summary$_1) {
+    return __awaiter(this, arguments, void 0, function* (tableRow, accountID, page, summary$, shallow = false) {
         const RHI = {
             id: undefined,
             [globals_1.RHIsTable.fields["RHI Account"]]: [accountID],
             "sb5c903c06": undefined
         };
         getBasicAccreditationDetail(RHI, tableRow, summary$);
-        const viewDetailsButton = yield page.$(`#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList_btnViewAccredApp_${tableRow - 2}`);
-        yield Promise.all([
-            page.waitForNavigation(),
-            viewDetailsButton.click()
-        ]);
-        const accreditationDetailsHTML = yield page.content();
-        getExpandedAccreditationDetail(accreditationDetailsHTML, RHI);
-        yield getPostcodeLocation(RHI);
+        if (!shallow) {
+            const viewDetailsButton = yield page.$(`#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList_btnViewAccredApp_${tableRow - 2}`);
+            yield Promise.all([
+                page.waitForNavigation(),
+                viewDetailsButton.click()
+            ]);
+            const accreditationDetailsHTML = yield page.content();
+            getExpandedAccreditationDetail(accreditationDetailsHTML, RHI);
+            yield getPostcodeLocation(RHI);
+        }
         return RHI;
     });
 }

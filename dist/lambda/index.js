@@ -15,16 +15,25 @@ const chromium = require("@sparticuz/chromium-min");
 chromium.setHeadlessMode = true;
 chromium.setGraphicsMode = false;
 exports.handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const shallow = Boolean((_a = event.queryStringParameters) === null || _a === void 0 ? void 0 : _a.shallow);
     console.log("EVENT: \n" + JSON.stringify(event, null, 2));
     const inputs = JSON.parse(event.body);
     try {
-        yield (0, main_1.default)(inputs, puppeteer_core_1.default, 1, {
+        yield (0, main_1.default)(inputs, puppeteer_core_1.default, {
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
             executablePath: yield chromium.executablePath("https://github.com/Sparticuz/chromium/releases/download/v119.0.2/chromium-v119.0.2-pack.tar"),
             headless: chromium.headless,
-        });
-        return "Update Complete";
+        }, 1, false);
+        const response = {
+            statusCode: 200,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: "Update Complete", shallow })
+        };
+        return response;
     }
     catch (err) {
         console.log(err);

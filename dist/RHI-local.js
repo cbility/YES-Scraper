@@ -63,11 +63,11 @@ const browserArgs = {
         return __awaiter(this, arguments, void 0, function* (step, index = 0) {
             if (inputs.length - step > index) {
                 console.log(`index ${index}`);
-                yield (0, main_1.default)(inputs.slice(index, index + step), puppeteer_1.default, 1, browserArgs);
+                yield (0, main_1.default)(inputs.slice(index, index + step), puppeteer_1.default, browserArgs, 1, false);
                 updateLogins(step, index + step);
             }
             else {
-                yield (0, main_1.default)(inputs.slice(index), puppeteer_1.default, 1, true);
+                yield (0, main_1.default)(inputs.slice(index), puppeteer_1.default, browserArgs, 1, false);
             }
         });
     }
