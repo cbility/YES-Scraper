@@ -18,7 +18,6 @@ import logInUser from "./logInUser";
 import validateLogin from "./validateLogin";
 import getRHIDetails from "./getRHIDetails";
 import { PuppeteerNode as PuppeteerCoreNode} from "puppeteer-core" ;
-import { PuppeteerNode} from "puppeteer" ;
 
 type Inputs = LoginInput[] | AccountInput[] | RHIInput[];
 
@@ -26,7 +25,7 @@ const MIN_LOGINS_PER_BROWSER = 3;
 
 export default async function main(
     inputs: Inputs,
-    puppeteer: PuppeteerCoreNode | PuppeteerNode,
+    puppeteer: PuppeteerCoreNode,
     browserArgs: object,
     multiplicity: number = 1,
     shallow: boolean = false

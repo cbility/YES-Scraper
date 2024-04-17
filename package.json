@@ -9,9 +9,11 @@
     },
     "dependencies": {
         "@sparticuz/chromium-min": "^119.0.2",
+        "@types/puppeteer-core": "^7.0.4",
         "cheerio": "^1.0.0-rc.12",
         "postcodesio-client": "^0.3.4",
-        "puppeteer-core": "^21.5.50"
+        "puppeteer-core": "^21.5.50",
+        "typescript": "^5.2.2"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^7.5.0",
@@ -19,6 +21,5 @@
         "dotenv": "^16.4.5",
         "eslint": "^8.57.0",
         "puppeteer": "^21.5.0",
-        "typescript": "^5.2.2"
     }
 }
