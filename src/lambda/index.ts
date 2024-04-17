@@ -31,7 +31,7 @@ exports.handler = async (event) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ message: "Update Complete", shallow  })
+            body: JSON.stringify({ message: "Update Complete"})
         };
         return response;
 

@@ -31,7 +31,7 @@ exports.handler = (event) => __awaiter(void 0, void 0, void 0, function* () {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ message: "Update Complete", shallow })
+            body: JSON.stringify({ message: "Update Complete" })
         };
         return response;
     }
