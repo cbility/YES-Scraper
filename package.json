@@ -5,7 +5,7 @@
     "main": "dist\\RHI-local.js",
     "scripts": {
         "start": "node dist\\RHI-local.js",
-        "build": "tsc src/lambda/**/*.ts --diagnostics"
+        "build": "tsc src/lambda/**/*.ts --diagnostics --extendedDiagnostics --traceResolution --explainFiles"
     },
     "dependencies": {
         "@sparticuz/chromium-min": "^119.0.2",
