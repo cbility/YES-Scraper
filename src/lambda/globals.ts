@@ -1,6 +1,6 @@
 import { ukPostalCodePattern } from "./RHI/getAccountDetails";
 
-export const SMARTSUITE_HEADERS = { "Authorization": process.env.SMARTSUITE_KEY, "Account-Id": "s5ch1upc" };
+export const SMARTSUITE_HEADERS = { "Authorization": process.env.SMARTSUITE_KEY as string, "Account-Id": "s5ch1upc" };
 
 export interface LoginRecord extends ExistingRecord {
     s362676897: "Authorised Signatory" | "Additional User";
@@ -194,7 +194,7 @@ export type AccountInput = { accountID: string; };
 export type RHIInput = { rhiID: string; };
 export function extractPostcodeFromAddress(address: string) {
     const addressLines = address.split(",");
-    let postcode: string;
+    let postcode: string | undefined = undefined;
     ukPostalCodePattern.lastIndex = 0;
     for (let i = addressLines.length - 1; i >= 0; i--) {
         if (ukPostalCodePattern.test(addressLines[i])) {
