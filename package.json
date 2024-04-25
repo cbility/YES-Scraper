@@ -1,6 +1,6 @@
 {
     "type": "commonjs",
-    "name": "your-package-name",
+    "name": "yes-scraper",
     "version": "1.0.0",
     "main": "dist\\RHI-local.js",
     "scripts": {
