@@ -6,7 +6,7 @@ import { Handler } from "aws-lambda";
 chromium.setHeadlessMode = true;
 chromium.setGraphicsMode = false;
 
-export const handler: Handler = async (event) => {
+const handler: Handler = async (event) => {
 
     const shallow: boolean = Boolean(event.queryStringParameters?.shallow);
 
@@ -38,4 +38,8 @@ export const handler: Handler = async (event) => {
     catch (err) {
         console.log(err);
     }
+};
+
+module.exports = {
+    handler
 };
