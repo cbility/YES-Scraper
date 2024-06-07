@@ -1,8 +1,9 @@
 import { RHIRecord, RHIsTable } from "../globals";
-import { AddressFieldType } from "../globals";
-import {Page} from "puppeteer-core";
+import { AddressField } from "../globals";
+import { Page } from "puppeteer-core";
 import * as cheerio from "cheerio";
-import PostcodesIO = require("postcodesio-client");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const PostcodesIO = require("postcodesio-client");
 const postcodes = new PostcodesIO("https://api.postcodes.io");
 
 export default async function getRHIDetails(
@@ -10,7 +11,7 @@ export default async function getRHIDetails(
     page: Page,
     shallow: boolean = false
 ): Promise<RHIRecord[]> {
-    
+
     //go to accreditation
     await page.goto("https://rhi.ofgem.gov.uk/Accreditation/ApplyAccreditation.aspx?mode=13");
 
@@ -31,18 +32,19 @@ export default async function getRHIDetails(
     await page.goto("https://rhi.ofgem.gov.uk/PeriodicData/SubmitPeriodicData.aspx");
 
     const RHIOptions = await page.evaluate(() => {
-        const selectElement: HTMLSelectElement = document.querySelector(
-            "#FullWidthPlaceholder_FullWidthContentPlaceholder_ddlInstallation");
-        const _options: {[key: string]: string} = {};
+        const selectElement = document.querySelector(
+            "#FullWidthPlaceholder_FullWidthContentPlaceholder_ddlInstallation") as HTMLSelectElement;
+        const _options: { [key: string]: string } = {};
+        if (selectElement === null) throw new Error("Element not found");
         Array.from(selectElement.options)
-            .forEach(option => {_options[option.textContent.trim()] = option.value;});
+            .forEach(option => { _options[option.textContent?.trim() ?? ""] = option.value; });
         return _options;
-    });  
+    });
 
     //get periodic data information and update RHIRecords
     for (const RHI of RHIRecords) {
-        if (RHI[RHIsTable.fields["Accreditation Status"]] == "Terminated" 
-              || RHI[RHIsTable.fields["Accreditation Status"]] == "Withdrawn") continue;
+        if (RHI[RHIsTable.fields["Accreditation Status"]] == "Terminated"
+            || RHI[RHIsTable.fields["Accreditation Status"]] == "Withdrawn") continue;
 
         await page.select("#FullWidthPlaceholder_FullWidthContentPlaceholder_ddlInstallation",
             RHIOptions[RHI.title + " | " + RHI[RHIsTable.fields["RHI Installation Name"]]]);
@@ -50,7 +52,7 @@ export default async function getRHIDetails(
         await page.waitForNavigation();
 
         const PeriodicDataSubmissionHTML = await page.content();
-        const {firstDate, lastDate} = getSubmissionDates(PeriodicDataSubmissionHTML);
+        const { firstDate, lastDate } = getSubmissionDates(PeriodicDataSubmissionHTML);
         RHI[RHIsTable.fields["Latest Submitted PDS"]] = lastDate?.toISOString().split("T")[0];
         RHI[RHIsTable.fields["RHI Start"]] = firstDate?.toISOString().split("T")[0];
         await page.goto("https://rhi.ofgem.gov.uk/PeriodicData/SubmitPeriodicData.aspx");
@@ -65,17 +67,18 @@ async function getRHIAccreditationDetails(
     summary$: cheerio.CheerioAPI,
     shallow: boolean = false) {
 
-    const RHI: RHIRecord = {
-        id: undefined,
+    const RHI: Partial<RHIRecord> = {
+        //id: "",
         [RHIsTable.fields["RHI Account"]]: [accountID],
-        "sb5c903c06": undefined
+        "sb5c903c06": undefined //initialize location
     };
 
     getBasicAccreditationDetail(RHI, tableRow, summary$);
 
-    if (!shallow) {
+    if (!shallow) { //get detailed accreditation information
         const viewDetailsButton = await page.$(
             `#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList_btnViewAccredApp_${tableRow - 2}`);
+        if (viewDetailsButton === null) throw new Error("Element viewDetailsButton not found");
         await Promise.all([
             page.waitForNavigation(),
             viewDetailsButton.click()
@@ -84,21 +87,27 @@ async function getRHIAccreditationDetails(
         getExpandedAccreditationDetail(accreditationDetailsHTML, RHI);
         await getPostcodeLocation(RHI);
     }
-    return RHI;
+    return RHI as RHIRecord;
 }
 
-async function getPostcodeLocation(RHI: RHIRecord) {
-    const postcode = RHI[RHIsTable.fields["Location"]]?.location_zip;
+async function getPostcodeLocation(RHI: Partial<RHIRecord>) {
+    const postcode = (RHI[RHIsTable.fields["Location"]] as { location_zip: string })?.location_zip;
     if (postcode) {
         const postcodeData = await postcodes.lookup(postcode);
         if (postcodeData) {
-            RHI[RHIsTable.fields["Location"]].location_latitude = String(postcodeData.latitude);
-            RHI[RHIsTable.fields["Location"]].location_longitude = String(postcodeData.longitude);
+            (
+                RHI[RHIsTable.fields["Location"]] as { location_latitude: string }
+
+            ).location_latitude = String(postcodeData.latitude);
+            (
+                RHI[RHIsTable.fields["Location"]] as { location_longitude: string }
+
+            ).location_longitude = String(postcodeData.longitude);
         }
     }
 }
 
-function getExpandedAccreditationDetail(accreditationDetailsHTML: string, RHI: RHIRecord) {
+function getExpandedAccreditationDetail(accreditationDetailsHTML: string, RHI: Partial<RHIRecord>) {
     const $ = cheerio.load(accreditationDetailsHTML);
 
     const accreditationSummaryTableRows = $(
@@ -108,131 +117,131 @@ function getExpandedAccreditationDetail(accreditationDetailsHTML: string, RHI: R
         const rowID = $(element).find("td:nth-child(1)");
 
         switch (rowID.text().trim()) {
-        case "HC110": {
-            RHI[RHIsTable.fields["Commissioning Date"]] = convertToISODateString(
-                $(element).find("td:nth-child(3)").text());
-            break;
-        }
-        case "HA120": {
-            RHI[RHIsTable.fields["Thermal Capacity"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HH120": {
-            RHI[RHIsTable.fields["HH120"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HA110": {
-            RHI[RHIsTable.fields["Technology"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HH123-3": {
-            RHI[RHIsTable.fields["QHLF (KWH)"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HA150": {
-            RHI[RHIsTable.fields["Name Plate Efficiency"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HA160": {
-            RHI[RHIsTable.fields["Sustainability Reporting"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HG122a-1": {
-            RHI[RHIsTable.fields["Boiler Manufacturer"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HG123a-1": {
-            RHI[RHIsTable.fields["Boiler Model"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HH110": {
-            RHI[RHIsTable.fields["HH110"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HG121": {
-            RHI[RHIsTable.fields["Number of boilers"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HI100-1": {
-            RHI[RHIsTable.fields["Hot Water Meters"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HI100-2": {
-            RHI[RHIsTable.fields["Steam Meters"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HK120": {
-            RHI[RHIsTable.fields["HK120"]] = $(element).find("td:nth-child(3)").text();
-            break;
-        }
-        case "HC130": {
-            const address: AddressFieldType = { "location_country": "United Kingdom" };
-            switch ($(element).find("td:nth-child(3)").text()) { //is account address same as install address
-            case "Yes": {
-                accreditationSummaryTableRows.each((i, e) => {
-                    const rID = $(e).find("td:nth-child(1)");
-                    switch (rID.text().trim()) {
-                    case "HM130": {
-                        address.location_address = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HM140": {
-                        address.location_address2 = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HM160": {
-                        address.location_city = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HM170": {
-                        address.location_state = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HM180": {
-                        address.location_zip = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    }
-                });
+            case "HC110": {
+                RHI[RHIsTable.fields["Commissioning Date"]] = convertToISODateString(
+                    $(element).find("td:nth-child(3)").text());
                 break;
             }
-            case "No": {
-                accreditationSummaryTableRows.each((i, e) => {
-                    const rID = $(e).find("td:nth-child(1)");
-                    switch (rID.text().trim()) {
-                    case "HC150": {
-                        address.location_address = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HC160": {
-                        address.location_address2 = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HC180": {
-                        address.location_city = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HC190": {
-                        address.location_state = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    case "HC140": {
-                        address.location_zip = $(e).find("td:nth-child(3)").text();
-                        break;
-                    }
-                    }
-                });
+            case "HA120": {
+                RHI[RHIsTable.fields["Thermal Capacity"]] = $(element).find("td:nth-child(3)").text();
                 break;
             }
+            case "HH120": {
+                RHI[RHIsTable.fields["HH120"]] = $(element).find("td:nth-child(3)").text();
+                break;
             }
-            RHI[RHIsTable.fields["Location"]] = address;
-            break;
-        }
+            case "HA110": {
+                RHI[RHIsTable.fields["Technology"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HH123-3": {
+                RHI[RHIsTable.fields["QHLF (KWH)"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HA150": {
+                RHI[RHIsTable.fields["Name Plate Efficiency"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HA160": {
+                RHI[RHIsTable.fields["Sustainability Reporting"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HG122a-1": {
+                RHI[RHIsTable.fields["Boiler Manufacturer"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HG123a-1": {
+                RHI[RHIsTable.fields["Boiler Model"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HH110": {
+                RHI[RHIsTable.fields["HH110"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HG121": {
+                RHI[RHIsTable.fields["Number of boilers"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HI100-1": {
+                RHI[RHIsTable.fields["Hot Water Meters"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HI100-2": {
+                RHI[RHIsTable.fields["Steam Meters"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HK120": {
+                RHI[RHIsTable.fields["HK120"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HC130": {
+                const address: AddressField = { "location_country": "United Kingdom" };
+                switch ($(element).find("td:nth-child(3)").text()) { //is account address same as install address
+                    case "Yes": {
+                        accreditationSummaryTableRows.each((i, e) => {
+                            const rID = $(e).find("td:nth-child(1)");
+                            switch (rID.text().trim()) {
+                                case "HM130": {
+                                    address.location_address = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HM140": {
+                                    address.location_address2 = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HM160": {
+                                    address.location_city = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HM170": {
+                                    address.location_state = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HM180": {
+                                    address.location_zip = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                            }
+                        });
+                        break;
+                    }
+                    case "No": {
+                        accreditationSummaryTableRows.each((i, e) => {
+                            const rID = $(e).find("td:nth-child(1)");
+                            switch (rID.text().trim()) {
+                                case "HC150": {
+                                    address.location_address = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HC160": {
+                                    address.location_address2 = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HC180": {
+                                    address.location_city = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HC190": {
+                                    address.location_state = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                                case "HC140": {
+                                    address.location_zip = $(e).find("td:nth-child(3)").text();
+                                    break;
+                                }
+                            }
+                        });
+                        break;
+                    }
+                }
+                RHI[RHIsTable.fields["Location"]] = address;
+                break;
+            }
         }
     });
 }
 
-function getBasicAccreditationDetail(RHI: RHIRecord, tableRow: number, $: cheerio.CheerioAPI) {
+function getBasicAccreditationDetail(RHI: Partial<RHIRecord>, tableRow: number, $: cheerio.CheerioAPI) {
     RHI.title = $(
         `#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList > 
             tbody > tr:nth-child(${tableRow}) > td:nth-child(2)`)
@@ -272,52 +281,66 @@ function convertToISODateString(dateString: string) {
     return isoDateString;
 }
 
-function getSubmissionDates(PeriodicDateSubmissionHTML: string): {firstDate: Date; lastDate: Date} {
+function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Date | null; lastDate: Date | null } {
     const $ = cheerio.load(PeriodicDateSubmissionHTML);
     const PDSRows = $("#FullWidthPlaceholder_FullWidthContentPlaceholder_gvTimeLines > tbody > tr");
 
-    const firstDate: Date =  PDSRows.length > 0 ? getDayBeforeFirstDateInLine(PDSRows[PDSRows.length-1]): null;
-    let lastDate: Date = null;
+    const firstDate: Date | null = PDSRows.length > 0 ? getDayBeforeFirstDateInLine(PDSRows[PDSRows.length - 1]) : null;
+    let lastDate: Date | null = null;
 
-    PDSRows.each((index, PDSRow) => { 
+    PDSRows.each((index, PDSRow) => {
         const status = $(PDSRow).find("td:nth-child(2)").text().trim();
         const action = $(PDSRow).find("td:nth-child(3)").text().trim();
         switch (status) {
-        case "Submitted" :
-        case "Approved" :
-        case "In Review" :
-            lastDate = getSecondDateInLine(PDSRow);
-            return false; //exit loop
-        case "Partially Complete" :
-            switch (action) {
-            case "Record/Submit":
-                // eslint-disable-next-line no-case-declarations
-                lastDate = getDayBeforeFirstDateInLine(PDSRow);
-                return false; //exit loop
-            case "View" :
+            case "Submitted":
+            case "Approved":
+            case "In Review":
                 lastDate = getSecondDateInLine(PDSRow);
                 return false; //exit loop
-            }
-            break;
-        case "Partially Complete but With Participant" :
-            if (action === "Edit") {
-                lastDate = getDayBeforeFirstDateInLine(PDSRow);
-                return false; //exit loop
-            }
-            break;
+            case "Partially Complete":
+                switch (action) {
+                    case "Record/Submit":
+                        // eslint-disable-next-line no-case-declarations
+                        lastDate = getDayBeforeFirstDateInLine(PDSRow);
+                        return false; //exit loop
+                    case "View":
+                        lastDate = getSecondDateInLine(PDSRow);
+                        return false; //exit loop
+                }
+                break;
+            case "Partially Complete but With Participant":
+                if (action === "Edit") {
+                    lastDate = getDayBeforeFirstDateInLine(PDSRow);
+                    return false; //exit loop
+                }
+                break;
         }
     });
-    return {firstDate, lastDate};
+    return { firstDate, lastDate };
 
     function getSecondDateInLine(PDSRow: cheerio.Element): Date {
         const dateRegex = /\b\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}\b/g;
-        return new Date(Date.parse($(PDSRow).find("td:nth-child(1)").text().match(dateRegex)[1]));
+        const matches = $(PDSRow).find("td:nth-child(1)").text().match(dateRegex);
+
+        if (matches && matches.length > 1) {
+            return new Date(Date.parse(matches[1]));
+        } else {
+            throw new Error(`Unable to find second date in ${PDSRow}`);
+        }
     }
+
 
     function getDayBeforeFirstDateInLine(PDSRow: cheerio.Element): Date {
         const dateRegex = /\b\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}\b/g;
-        const date = new Date(Date.parse($(PDSRow).find("td:nth-child(1)").text().match(dateRegex)[0]));
-        return new Date(date.setDate(date.getDate() - 1));
+        const matches = $(PDSRow).find("td:nth-child(1)").text().match(dateRegex);
+
+        if (matches && matches.length > 0) {
+            const date = new Date(Date.parse(matches[0]));
+            return new Date(date.setDate(date.getDate() - 1));
+        } else {
+            throw new Error(`Unable to find date in ${PDSRow}`);
+        }
     }
+
 }
 

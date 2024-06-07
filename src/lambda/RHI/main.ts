@@ -17,7 +17,7 @@ import getAccountDetails from "./getAccountDetails";
 import logInUser from "./logInUser";
 import validateLogin from "./validateLogin";
 import getRHIDetails from "./getRHIDetails";
-import { PuppeteerNode as PuppeteerCoreNode} from "puppeteer-core" ;
+import { PuppeteerNode as PuppeteerCoreNode } from "puppeteer-core";
 
 type Inputs = LoginInput[] | AccountInput[] | RHIInput[];
 
@@ -80,7 +80,7 @@ export default async function main(
                         (inputLogin: LoginInput) => inputLogin.loginID
                     );
                     const _updatedLoginDetails: LoginRecord[] = [];
-                    const _updatedAccountDetails: AccountRecord[] = [];
+                    const _updatedAccountDetails: (AccountRecord | Omit<AccountRecord, "id">)[] = [];
                     const _updatedRHIDetails: RHIRecord[] = [];
                     const _newRHIDetails: Omit<RHIRecord, "id">[] = [];
                     const page = await browser.newPage();
@@ -90,7 +90,7 @@ export default async function main(
                             loginRecords[loginRecordID];
                         // set the account via updating the account record, not the login record itself
                         const accountID =
-                            loginRecordToUpdate[loginsTable.fields["Account"]][0];
+                            (loginRecordToUpdate[loginsTable.fields["Account"]] as string[])[0];
                         //delete loginRecordToUpdate[loginsTable.fields['Account']];
 
                         if (!loginRecordToUpdate[loginsTable.fields["Password Correct"]])
@@ -99,7 +99,7 @@ export default async function main(
                         await logInUser(loginRecordToUpdate, page);
 
                         if (!(await validateLogin(page))) {
-                            updateRecord(
+                            updateSingleRecord(
                                 { [loginsTable.fields["Password Correct"]]: false },
                                 loginRecordID,
                                 loginsTable.id
@@ -130,16 +130,16 @@ export default async function main(
 
                             updatedLoginRecord[loginsTable.fields["Account"]] =
                                 ExistingRHIAccounts[
-                                    RHIDetails[0].title
+                                RHIDetails[0].title as string
                                 ]; // Set account using linked RHIs
 
                             RHIDetails.forEach((RHI) => {
                                 delete RHI[RHIsTable.fields["RHI Account"]];
 
-                                if (!(RHI.title in ExistingRHIRecords)) {
+                                if (!(RHI.title as string in ExistingRHIRecords)) {
                                     return; //don't add RHIs that we don't have an AS password for
                                 }
-                                RHI.id = ExistingRHIRecords[RHI.title];
+                                RHI.id = ExistingRHIRecords[RHI.title as string];
                                 _updatedRHIDetails.push(RHI); //update everything but account
                             });
 
@@ -147,27 +147,25 @@ export default async function main(
                             continue;
                         }
 
-                        const accountRecordToUpdate: AccountRecord = accountID
-                            ? {
-                                id: accountID,
-                            }
-                            : {
-                            //only update the linked login if account is brand new, i.e. corresponds to a new AS login
+                        const accountRecordToUpdate: AccountRecord | Omit<AccountRecord, "id"> = accountID ?
+                            { id: accountID, } : {
+                                //only update the linked login if account is brand new,
+                                // i.e. corresponds to a new AS login
                                 id: undefined,
                                 [accountsTable.fields["Logins"]]: [loginRecordToUpdate.id],
                             };
-                        /*AU logins have to be linked to existing accounts on SS. That's because the account details
+                        /*AU logins have to be linked to pre-existing accounts on SS. That's because the account details
                            aren't available from AU logins, so the account has to be identified via the RHIs.
                 
                            That means that AU logins are added to an account via updating the login record, whereas AS
-                           logins are only ever added to a brand new account record via creating a creating the
-                           record with a link to the login. Accounts records are only ever updated from an AS login.
+                           logins are only ever added to a brand new account record via creating the record with
+                           a link to the login. Accounts records are only ever updated from an AS login.
                 
                            That in turn means that logins have to be updated BEFORE new accounts are created, and that 
                            updating an account record can not update the linked logins.
                            This avoids overwriting information.*/
 
-                        const updatedAccountRecord: AccountRecord = await getAccountDetails(
+                        const updatedAccountRecord: Omit<AccountRecord, "id"> = await getAccountDetails(
                             accountRecordToUpdate,
                             page
                         );
@@ -176,11 +174,11 @@ export default async function main(
                             //only get RHIs for accounts on record
                             const RHIDetails = await getRHIDetails(accountID, page, shallow);
                             RHIDetails.forEach((RHI) => {
-                                if (!(RHI.title in ExistingRHIRecords)) {
+                                if (!(RHI.title as string in ExistingRHIRecords)) {
                                     _newRHIDetails.push(RHI);
                                     return;
                                 }
-                                RHI.id = ExistingRHIRecords[RHI.title];
+                                RHI.id = ExistingRHIRecords[RHI.title as string];
                                 _updatedRHIDetails.push(RHI);
                             });
                         }
@@ -203,20 +201,18 @@ export default async function main(
 
         if (loginDetails.length == 0) return;
 
-        type NewAccountRecord = Omit<AccountRecord, "id">;
-
-        const newAccountDetails: NewAccountRecord[] = accountDetails
+        const newAccountDetails: Omit<AccountRecord, "id">[] = accountDetails
             .filter((account) => !account.id)
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .map(({ id, ...rest }) => rest);
 
         const updatedAccountDetails: AccountRecord[] = accountDetails.filter(
-            (account) => Boolean(account.id)
-        );
+            (account) => !!account.id
+        ) as AccountRecord[];
 
         //update SmartSuite logins first to avoid overwriting links to new accounts
         if (loginDetails.length > 0)
-            updateExistingRecords(loginDetails, loginsTable.id);
+            updateMultipleRecords(loginDetails, loginsTable.id);
 
         //add new accounts
         if (newAccountDetails.length > 0)
@@ -224,11 +220,11 @@ export default async function main(
 
         //update existing accounts
         if (updatedAccountDetails.length > 0)
-            await updateExistingRecords(updatedAccountDetails, accountsTable.id);
+            await updateMultipleRecords(updatedAccountDetails, accountsTable.id);
 
         //update existing RHIs
         if (updatedRHIDetails.length > 0)
-            await updateExistingRecords(updatedRHIDetails, RHIsTable.id);
+            await updateMultipleRecords(updatedRHIDetails, RHIsTable.id);
 
         //add new RHIs
         if (newRHIDetails.length > 0)
@@ -301,7 +297,7 @@ async function addNewRecords(records: object[], tableID: string) {
     return result;
 }
 
-async function updateExistingRecords(
+async function updateMultipleRecords(
     records: ExistingRecord[],
     tableID: string
 ) {
@@ -323,7 +319,7 @@ async function updateExistingRecords(
     return result;
 }
 
-async function updateRecord(record: object, recordID: string, tableID: string) {
+async function updateSingleRecord(record: object, recordID: string, tableID: string) {
     const url = `https://app.smartsuite.com/api/v1/applications/${tableID}/records/${recordID}/`;
 
     const body = record;

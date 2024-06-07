@@ -2,7 +2,7 @@
 require("dotenv").config();
 import puppeteer from "puppeteer";
 import main from "./lambda/RHI/main";
-import { PuppeteerNode as PuppeteerCoreNode} from "puppeteer-core" ;
+import { PuppeteerNode as PuppeteerCoreNode } from "puppeteer-core";
 
 import {
     loginsTable,
@@ -12,7 +12,7 @@ import {
 } from "./lambda/globals";
 
 const browserArgs = {
-    headless: true, //set to false to disable headless
+    headless: "new", //using new headless mode set to false to disable headless
     defaultViewport: null,
     args: [
         "--autoplay-policy=user-gesture-required",
@@ -63,7 +63,11 @@ const browserArgs = {
     async function updateLogins(step: number, index: number = 0) {
         if (inputs.length - step > index) {
             console.log(`index ${index}`);
-            await main(inputs.slice(index, index + step), puppeteer as unknown as PuppeteerCoreNode, browserArgs, 1, true);
+            await main(inputs.slice(index, index + step),
+                puppeteer as unknown as PuppeteerCoreNode,
+                browserArgs,
+                1,
+                true);
             updateLogins(step, index + step);
         } else {
             await main(inputs.slice(index), puppeteer as unknown as PuppeteerCoreNode, browserArgs, 1, true);

@@ -7,7 +7,11 @@ export interface LoginRecord extends ExistingRecord {
     title: string; "sb4e5173b6": string;
 }
 
-export interface AddressFieldType {
+export interface NewRecord {
+    [key: string]: unknown;
+}
+
+export interface AddressField {
     location_address?: string;
     location_address2?: string;
     location_city?: string;
@@ -19,19 +23,21 @@ export interface AddressFieldType {
 }
 
 export interface RHIRecord extends ExistingRecord {
-    title?: string;
+    //TODO: add additional fields
+}
+
+export interface FullNameField {
+    first_name: string;
+    middle_name: string;
+    last_name: string;
 }
 
 export interface AccountRecord extends ExistingRecord {
     title?: string; s27463de03?: string[]; se00b833bd?: string[];
-    s94016b86e?: string; s5af20d21e?: {
-        first_name: string;
-        middle_name: string;
-        last_name: string
-    }; sa82805803?: string; s898c7779e?: {
+    s94016b86e?: string; s5af20d21e?: FullNameField; sa82805803?: string; s898c7779e?: {
         "phone_country": "UK",
         "phone_number": string
-    }; s906ceac06?: AddressFieldType
+    }; s906ceac06?: AddressField
 }
 
 export const loginsTable = {
@@ -133,7 +139,7 @@ export const RHIsTable = {
     }
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ExistingRecord = { id: string;[slug: string]: any };
+export type ExistingRecord = { id: string;[slug: string]: unknown };
 
 export class HTTPError extends Error {
     status: number;
