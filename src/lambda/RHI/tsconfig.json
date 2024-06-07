@@ -4,7 +4,8 @@
         "noImplicitAny": false,
         "target": "ES2015",
         "module": "CommonJS",
-        "outDir": "dist",
+        "outDir": "../../../dist",
+        "rootDir": "../..",
         "sourceMap": true,
         "moduleResolution": "node",
         "types": [
