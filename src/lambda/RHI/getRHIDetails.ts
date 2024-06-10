@@ -285,7 +285,7 @@ function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Da
     const $ = cheerio.load(PeriodicDateSubmissionHTML);
     const PDSRows = $("#FullWidthPlaceholder_FullWidthContentPlaceholder_gvTimeLines > tbody > tr");
 
-    const firstDate: Date | null = PDSRows.length > 0 ? getDayBeforeFirstDateInLine(PDSRows[PDSRows.length - 1]) : null;
+    const firstDate: Date | null = PDSRows.length > 0 ? getFirstDateInLine(PDSRows[PDSRows.length - 1]) : null;
     let lastDate: Date | null = null;
 
     PDSRows.each((index, PDSRow) => {
@@ -301,7 +301,7 @@ function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Da
                 switch (action) {
                     case "Record/Submit":
                         // eslint-disable-next-line no-case-declarations
-                        lastDate = getDayBeforeFirstDateInLine(PDSRow);
+                        lastDate = getFirstDateInLine(PDSRow);
                         return false; //exit loop
                     case "View":
                         lastDate = getSecondDateInLine(PDSRow);
@@ -310,7 +310,7 @@ function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Da
                 break;
             case "Partially Complete but With Participant":
                 if (action === "Edit") {
-                    lastDate = getDayBeforeFirstDateInLine(PDSRow);
+                    lastDate = getFirstDateInLine(PDSRow);
                     return false; //exit loop
                 }
                 break;
@@ -330,13 +330,13 @@ function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Da
     }
 
 
-    function getDayBeforeFirstDateInLine(PDSRow: cheerio.Element): Date {
+    function getFirstDateInLine(PDSRow: cheerio.Element): Date {
         const dateRegex = /\b\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}\b/g;
         const matches = $(PDSRow).find("td:nth-child(1)").text().match(dateRegex);
 
         if (matches && matches.length > 0) {
             const date = new Date(Date.parse(matches[0]));
-            return new Date(date.setDate(date.getDate() - 1));
+            return new Date(date.setDate(date.getDate()));
         } else {
             throw new Error(`Unable to find date in ${PDSRow}`);
         }
