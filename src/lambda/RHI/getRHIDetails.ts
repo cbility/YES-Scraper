@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { RHIRecord, RHIsTable } from "../globals";
 import { AddressField } from "../globals";
 import { Page } from "puppeteer-core";
@@ -52,9 +53,10 @@ export default async function getRHIDetails(
         await page.waitForNavigation();
 
         const PeriodicDataSubmissionHTML = await page.content();
-        const { firstDate, lastDate } = getSubmissionDates(PeriodicDataSubmissionHTML);
+        const { firstDateOnAccount, RHIStart, lastDate } = getSubmissionDates(PeriodicDataSubmissionHTML);
         RHI[RHIsTable.fields["Latest Submitted PDS"]] = lastDate?.toISOString().split("T")[0];
-        RHI[RHIsTable.fields["RHI Start"]] = firstDate?.toISOString().split("T")[0];
+        RHI[RHIsTable.fields["RHI Start"]] = RHIStart?.toISOString().split("T")[0];
+        RHI[RHIsTable.fields["First Reading on Account"]] = firstDateOnAccount?.toISOString().split("T")[0];
         await page.goto("https://rhi.ofgem.gov.uk/PeriodicData/SubmitPeriodicData.aspx");
     }
     return RHIRecords;
@@ -256,7 +258,7 @@ function getBasicAccreditationDetail(RHI: Partial<RHIRecord>, tableRow: number, 
                  tbody > tr:nth-child(${tableRow}) > td:nth-child(4)`)
         .text().trim());
     //RHI[RHIsTable.fields['Accreditation date']] = {};
-    RHI[RHIsTable.fields["Accreditation date"]] = convertToISODateString($(
+    RHI[RHIsTable.fields["Accreditation Date"]] = convertToISODateString($(
         `#mainPlaceHolder_ContentPlaceHolder_gvEditOrViewAccredAppList >
                      tbody > tr:nth-child(${tableRow}) > td:nth-child(5)`)
         .text().trim());
@@ -276,69 +278,113 @@ function convertToISODateString(dateString: string) {
     if (parts.length !== 3) {
         throw new Error("Invalid date format");
     }
-    // Rearrange the parts to form the "YYYY-MM-DD" format
+    // Rearrange the parts to form "YYYY-MM-DD" format
     const isoDateString = parts[2] + "-" + parts[1] + "-" + parts[0];
     return isoDateString;
 }
 
-function getSubmissionDates(PeriodicDateSubmissionHTML: string): { firstDate: Date | null; lastDate: Date | null } {
+function getSubmissionDates(PeriodicDateSubmissionHTML: string): {
+    firstDateOnAccount: Date | null; //start date of first period on account
+    RHIStart: Date | null //start date of Y1Q1
+    lastDate: Date | null //last submission date
+} {
     const $ = cheerio.load(PeriodicDateSubmissionHTML);
     const PDSRows = $("#FullWidthPlaceholder_FullWidthContentPlaceholder_gvTimeLines > tbody > tr");
 
-    const firstDate: Date | null = PDSRows.length > 0 ? getFirstDateInLine(PDSRows[PDSRows.length - 1]) : null;
-    let lastDate: Date | null = null;
+    const firstPDSRow = PDSRows.length > 0 ? PDSRows[PDSRows.length - 1] : null;
 
+    if (firstPDSRow === null) return { firstDateOnAccount: null, RHIStart: null, lastDate: null };
+
+    const firstPDSRowText = $(firstPDSRow).find("td:nth-child(1)").text();
+    //get first period start date on account (may not be the same as the RHI start)
+    const firstDateOnAccount = getFirstDateInLine(firstPDSRowText);
+
+    //get first quarter number, split by comma and remove 'PDS' from start
+    const firstSubmissionQuarter = +firstPDSRowText.split(",")[1].slice(4);
+    let RHIStart: Date | null = null;
+    //get a quarter start date and use it to calculate RHI start date
+    for (let rowsFromBottom = 2; rowsFromBottom < PDSRows.length; rowsFromBottom++) {
+        const nextPDSRow = PDSRows[PDSRows.length - rowsFromBottom];
+        const nextPDSRowText = $(nextPDSRow).find("td:nth-child(1)").text();
+        const nextSubmissionQuarter: number | null = +nextPDSRowText.split(",")[1].slice(4);
+
+        if (nextSubmissionQuarter === null) { break; } // if too few submissions set start date to null
+        if (nextSubmissionQuarter === firstSubmissionQuarter) continue; //if quarter did not change continue
+
+        const quarterStartDate = getFirstDateInLine(nextPDSRowText);
+        const quarterYear = +nextPDSRowText.split(",")[0].slice(-2); //remove "Year"
+        quarterStartDate.setFullYear(quarterStartDate.getFullYear() - (quarterYear - 1),
+            quarterStartDate.getMonth() - (nextSubmissionQuarter - 1) * 3);
+
+        RHIStart = quarterStartDate;
+        break;
+    }
+
+    let lastDate: Date | null = null;
+    /*find last submitted date from PDS.
+    Cycles through PDS lines from top. If status is Submitted, Approved or In Review then gets the second
+    date from the line (the submission date). If status is Partially Complete then checks the available action.
+    If the action allows submission then gets the day before the first date in line (previous submission date).
+    If the action allows view then gets the submission date. Lastly, if status is Partially Complete but With
+    Participant and the Action is Edit gets previous submission date. In all other cases, skips to next submission.
+    */
     PDSRows.each((index, PDSRow) => {
         const status = $(PDSRow).find("td:nth-child(2)").text().trim();
         const action = $(PDSRow).find("td:nth-child(3)").text().trim();
+        const dateText = $(PDSRow).find("td:nth-child(1)").text();
         switch (status) {
             case "Submitted":
             case "Approved":
             case "In Review":
-                lastDate = getSecondDateInLine(PDSRow);
+                lastDate = getSecondDateInLine(dateText);
                 return false; //exit loop
             case "Partially Complete":
                 switch (action) {
                     case "Record/Submit":
-                        // eslint-disable-next-line no-case-declarations
-                        lastDate = getFirstDateInLine(PDSRow);
+                        lastDate = getFirstDateInLine(dateText);
                         return false; //exit loop
                     case "View":
-                        lastDate = getSecondDateInLine(PDSRow);
+                        lastDate = getSecondDateInLine(dateText);
                         return false; //exit loop
                 }
                 break;
             case "Partially Complete but With Participant":
                 if (action === "Edit") {
-                    lastDate = getFirstDateInLine(PDSRow);
+                    lastDate = getFirstDateInLine(dateText);
                     return false; //exit loop
                 }
                 break;
         }
     });
-    return { firstDate, lastDate };
+    return { firstDateOnAccount, RHIStart, lastDate };
 
-    function getSecondDateInLine(PDSRow: cheerio.Element): Date {
+    function getSecondDateInLine(dateText: string): Date {
         const dateRegex = /\b\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}\b/g;
-        const matches = $(PDSRow).find("td:nth-child(1)").text().match(dateRegex);
+        //const dateText = $(PDSRow).find("td:nth-child(1)").text();
+        const matches = dateText.match(dateRegex);
 
         if (matches && matches.length > 1) {
-            return new Date(Date.parse(matches[1]));
+            const date = new Date(matches[1]);
+            date.setHours(12); //set time to midday to avoid off by 1 errors caused by daylight saving
+            // get UTC date to avoid off by one errors in summertime
+            return date;
+
         } else {
-            throw new Error(`Unable to find second date in ${PDSRow}`);
+            throw new Error(`Unable to find second date in ${dateText}`);
         }
     }
 
-
-    function getFirstDateInLine(PDSRow: cheerio.Element): Date {
+    function getFirstDateInLine(dateText: string): Date {
         const dateRegex = /\b\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}\b/g;
-        const matches = $(PDSRow).find("td:nth-child(1)").text().match(dateRegex);
+        //const dateText = $(PDSRow).find("td:nth-child(1)").text();
+        const matches = dateText.match(dateRegex);
 
         if (matches && matches.length > 0) {
-            const date = new Date(Date.parse(matches[0]));
-            return new Date(date.setDate(date.getDate()));
+            const date = new Date(matches[0]);
+            date.setHours(12); //set time to midday to avoid off by 1 errors caused by daylight saving
+            return date;
         } else {
-            throw new Error(`Unable to find date in ${PDSRow}`);
+            throw new Error(`Unable to find date in ${dateText}`);
         }
     }
 

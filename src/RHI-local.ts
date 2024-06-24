@@ -12,7 +12,7 @@ import {
 } from "./lambda/globals";
 
 const browserArgs = {
-    headless: "new", //using new headless mode set to false to disable headless
+    headless: "new", //using new headless mode, set to false to disable headless
     defaultViewport: null,
     args: [
         "--autoplay-policy=user-gesture-required",
@@ -51,15 +51,22 @@ const browserArgs = {
 };
 
 (async () => {
-    const allLoginRecords: ExistingRecord[] = await getAllRecords(loginsTable.id);
+    // const allLoginRecords: ExistingRecord[] = await getAllRecords(loginsTable.id);
 
-    const inputs: LoginInput[] = allLoginRecords.map((record) => ({
-        loginID: record.id,
-    }));
+    // const inputs: LoginInput[] = allLoginRecords.map((record) => ({
+    //     loginID: record.id,
+    //}));
 
-    //await main([{ loginID: "65e37da7f8428f036fd997d7" }], puppeteer, 1, true);
-    //const testID: string = process.argv[2];
 
+    await main([{ loginID: "65e37da7f8428f036fd9999a" }],
+        puppeteer as unknown as PuppeteerCoreNode,
+        browserArgs,
+        1,
+        true);
+    return;
+    /* */
+
+    /*
     async function updateLogins(step: number, index: number = 0) {
         if (inputs.length - step > index) {
             console.log(`index ${index}`);
@@ -74,5 +81,6 @@ const browserArgs = {
         }
     }
 
-    updateLogins(3, 0);
+    updateLogins(50, 50);
+    */
 })();

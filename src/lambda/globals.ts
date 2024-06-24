@@ -135,7 +135,8 @@ export const RHIsTable = {
         "Quarter ends": "s418ae4140",
         "AS Username": "sf8e7d9233",
         "AS Password": "sb28891359",
-        "Latest Submitted PDS": "s3ea6ec8f7"
+        "Latest Submitted PDS": "s3ea6ec8f7",
+        "First Reading on Account": "s6jzhsk8",
     }
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
