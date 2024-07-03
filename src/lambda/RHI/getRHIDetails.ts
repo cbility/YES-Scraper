@@ -176,6 +176,14 @@ function getExpandedAccreditationDetail(accreditationDetailsHTML: string, RHI: P
                 RHI[RHIsTable.fields["HK120"]] = $(element).find("td:nth-child(3)").text();
                 break;
             }
+            case "HF130": {
+                RHI[RHIsTable.fields["Seasonal Performance Factor (SPF)"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
+            case "HF120": {
+                RHI[RHIsTable.fields["Coefficient of Performance (COP)"]] = $(element).find("td:nth-child(3)").text();
+                break;
+            }
             case "HC130": {
                 const address: AddressField = { "location_country": "United Kingdom" };
                 switch ($(element).find("td:nth-child(3)").text()) { //is account address same as install address

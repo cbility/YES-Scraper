@@ -137,6 +137,8 @@ export const RHIsTable = {
         "AS Password": "sb28891359",
         "Latest Submitted PDS": "s3ea6ec8f7",
         "First Reading on Account": "s6jzhsk8",
+        "Coefficient of Performance (COP)": "sbe757d43c",
+        "Seasonal Performance Factor (SPF)": "sceb80d3b9",
     }
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
