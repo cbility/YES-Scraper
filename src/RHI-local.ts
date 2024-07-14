@@ -4,15 +4,8 @@ import puppeteer from "puppeteer";
 import main from "./lambda/RHI/main";
 import { PuppeteerNode as PuppeteerCoreNode } from "puppeteer-core";
 
-import {
-    loginsTable,
-    ExistingRecord,
-    LoginInput,
-    getAllRecords,
-} from "./lambda/globals";
-
 const browserArgs = {
-    headless: "new", //using new headless mode, set to false to disable headless
+    headless: false, //"new", //using new headless mode, set to false to disable headless
     defaultViewport: null,
     args: [
         "--autoplay-policy=user-gesture-required",
@@ -61,8 +54,7 @@ const browserArgs = {
     await main([{ loginID: "65e37da7f8428f036fd9999a" }],
         puppeteer as unknown as PuppeteerCoreNode,
         browserArgs,
-        1,
-        true);
+        false);
     return;
     /* */
 
